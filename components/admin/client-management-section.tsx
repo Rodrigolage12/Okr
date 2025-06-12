@@ -46,17 +46,17 @@ export function ClientManagementSection() {
     if (supabaseClients && supabaseClients.length > 0) {
       // Use real Supabase data
       const convertedClients = supabaseClients.map((client: any) => ({
-        id: client.id,
-        name: client.name,
-        email: client.email,
+        id: client.id || `temp-${Date.now()}`,
+        name: client.name || "Nome não informado",
+        email: client.email || "email@exemplo.com",
         company: client.phone || "Empresa não informada", // Using phone field as company
-        username: client.email.split("@")[0], // Generate username from email
+        username: client.email ? client.email.split("@")[0] : "usuario", // Generate username from email safely
         password: "••••••••", // Hidden password
         status: "active" as const,
         okrsCount: 0, // Will be calculated from related data
         tasksCount: 0, // Will be calculated from related data
-        lastActivity: client.updated_at || client.created_at,
-        joinedDate: client.created_at,
+        lastActivity: client.updated_at || client.created_at || new Date().toISOString(),
+        joinedDate: client.created_at || new Date().toISOString(),
       }))
       setClients(convertedClients)
     } else if (!loading && !error) {
