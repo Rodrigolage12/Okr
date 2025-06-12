@@ -60,6 +60,20 @@ export function NewClientDialog({ open, onOpenChange, onAddClient }: NewClientDi
     onOpenChange(false)
   }
 
+  // Auto-generate username from name when name changes
+  const handleNameChange = (value: string) => {
+    setName(value)
+    if (value && !username) {
+      // Generate username from name (remove spaces, convert to lowercase)
+      const generatedUsername = value
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "")
+        .substring(0, 20)
+      setUsername(generatedUsername)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
@@ -75,7 +89,7 @@ export function NewClientDialog({ open, onOpenChange, onAddClient }: NewClientDi
               id="name"
               placeholder="Ex: João Silva"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
               required
             />
           </div>

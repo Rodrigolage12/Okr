@@ -49,8 +49,8 @@ export function ClientManagementSection() {
         id: client.id || `temp-${Date.now()}`,
         name: client.name || "Nome não informado",
         email: client.email || "email@exemplo.com",
-        company: client.phone || "Empresa não informada", // Using phone field as company
-        username: client.email ? client.email.split("@")[0] : "usuario", // Generate username from email safely
+        company: client.company || "Empresa não informada",
+        username: client.username || (client.email ? client.email.split("@")[0] : "usuario"),
         password: "••••••••", // Hidden password
         status: "active" as const,
         okrsCount: 0, // Will be calculated from related data
@@ -149,11 +149,18 @@ export function ClientManagementSection() {
 
   const addClient = async (newClient: Omit<Client, "id">) => {
     try {
-      const supabaseClient = await addSupabaseClient({
+      // Map the client data to match Supabase schema
+      const supabaseClientData = {
         name: newClient.name,
         email: newClient.email,
-        phone: newClient.company, // Using company as phone for now
-      })
+        username: newClient.username,
+        password: newClient.password,
+        company: newClient.company,
+        phone: null, // Optional field
+        address: null, // Optional field
+      }
+
+      const supabaseClient = await addSupabaseClient(supabaseClientData)
 
       // Add to local state with Supabase ID
       const client: Client = {
