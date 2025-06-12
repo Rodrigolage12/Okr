@@ -1,98 +1,68 @@
-"use client"
+import { useClients, useOKRs, useReports } from "@/hooks/use-supabase-data"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
-import type { User } from "@/app/page"
+const AdminDashboard = () => {
+  // Replace the useState with real data hooks
+  const { clients, loading: clientsLoading } = useClients()
+  const { okrs, loading: okrsLoading } = useOKRs()
+  const { reports, loading: reportsLoading } = useReports()
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LogOut, Target, Calendar, CheckSquare, Users, Settings } from "lucide-react"
-import { ProcessManagementSection } from "@/components/admin/process-management-section"
-import { AdminAgendaSection } from "@/components/admin/admin-agenda-section"
-import { AdminTasksSection } from "@/components/admin/admin-tasks-section"
-import { ClientManagementSection } from "@/components/admin/client-management-section"
-import { SystemSettingsSection } from "@/components/admin/system-settings-section"
+  const loading = clientsLoading || okrsLoading || reportsLoading
 
-interface AdminDashboardProps {
-  user: User
-  onLogout: () => void
-}
-
-export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState("processes")
+  // Update the stats calculations to use real data:
+  const totalClients = clients.length
+  const totalOKRs = okrs.length
+  const totalReports = reports.length
+  const activeOKRs = okrs.filter((okr) => okr.status === "active").length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Gestão de Processos - Empresa</h1>
-                <p className="text-sm text-gray-600">Painel Administrativo</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Olá, {user.name}</span>
-              <Button variant="outline" size="sm" onClick={onLogout} className="flex items-center space-x-2">
-                <LogOut className="w-4 h-4" />
-                <span>Sair</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-5">Admin Dashboard</h1>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-sm">
-            <TabsTrigger value="clients" className="flex items-center space-x-2">
-              <Users className="w-4 h-4" />
-              <span>Clientes</span>
-            </TabsTrigger>
-            <TabsTrigger value="processes" className="flex items-center space-x-2">
-              <Target className="w-4 h-4" />
-              <span>Processos</span>
-            </TabsTrigger>
-            <TabsTrigger value="agenda" className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4" />
-              <span>Reuniões</span>
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center space-x-2">
-              <CheckSquare className="w-4 h-4" />
-              <span>Tarefas</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="w-4 h-4" />
-              <span>Configurações</span>
-            </TabsTrigger>
-          </TabsList>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Clients</CardTitle>
+            <CardDescription>All registered clients</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-5 w-20" /> : <div className="text-2xl font-bold">{totalClients}</div>}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="clients" className="space-y-6">
-            <ClientManagementSection />
-          </TabsContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total OKRs</CardTitle>
+            <CardDescription>All created OKRs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-5 w-20" /> : <div className="text-2xl font-bold">{totalOKRs}</div>}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="processes" className="space-y-6">
-            <ProcessManagementSection />
-          </TabsContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Active OKRs</CardTitle>
+            <CardDescription>Currently active OKRs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-5 w-20" /> : <div className="text-2xl font-bold">{activeOKRs}</div>}
+          </CardContent>
+        </Card>
 
-          <TabsContent value="agenda" className="space-y-6">
-            <AdminAgendaSection />
-          </TabsContent>
-
-          <TabsContent value="tasks" className="space-y-6">
-            <AdminTasksSection />
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <SystemSettingsSection />
-          </TabsContent>
-        </Tabs>
-      </main>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Reports</CardTitle>
+            <CardDescription>All submitted reports</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? <Skeleton className="h-5 w-20" /> : <div className="text-2xl font-bold">{totalReports}</div>}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
+
+export default AdminDashboard

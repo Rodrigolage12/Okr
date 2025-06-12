@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Plus, FileText, Send, Eye, Edit2, Trash2, Filter, Search, Calendar, User } from "lucide-react"
 import { NewReportDialog } from "@/components/admin/new-report-dialog"
+import { useReports, useClients } from "@/hooks/use-supabase-data"
 
 interface Report {
   id: string
@@ -25,61 +26,15 @@ interface Report {
 }
 
 export function ReportsManagementSection() {
-  const [reports, setReports] = useState<Report[]>([
-    {
-      id: "1",
-      title: "Relatório Mensal - Janeiro 2024",
-      description: "Análise de performance e progresso dos OKRs do mês de janeiro",
-      content: "## Resumo Executivo\n\nEste relatório apresenta o progresso dos OKRs durante o mês de janeiro...",
-      clientId: "1",
-      clientName: "João Silva",
-      type: "monthly",
-      status: "sent",
-      createdAt: "2024-01-25",
-      sentAt: "2024-01-26",
-      viewedAt: "2024-01-27",
-      createdBy: "Ana Silva",
-    },
-    {
-      id: "2",
-      title: "Relatório de Projeto - Consultoria Estratégica",
-      description: "Relatório de progresso do projeto de consultoria estratégica",
-      content: "## Progresso do Projeto\n\nO projeto está avançando conforme planejado...",
-      clientId: "1",
-      clientName: "João Silva",
-      type: "project",
-      status: "viewed",
-      createdAt: "2024-01-20",
-      sentAt: "2024-01-21",
-      viewedAt: "2024-01-22",
-      createdBy: "Carlos Santos",
-    },
-    {
-      id: "3",
-      title: "Relatório Trimestral Q1 2024",
-      description: "Análise completa do primeiro trimestre de 2024",
-      content: "## Análise Trimestral\n\nDurante o primeiro trimestre...",
-      clientId: "2",
-      clientName: "Maria Santos",
-      type: "quarterly",
-      status: "draft",
-      createdAt: "2024-01-15",
-      createdBy: "Ana Silva",
-    },
-  ])
+  const { reports, loading, error, addReport, editReport, removeReport } = useReports()
+  const { clients } = useClients()
 
   const [showNewReportDialog, setShowNewReportDialog] = useState(false)
   const [selectedClient, setSelectedClient] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState("")
 
-  const clients = [
-    { id: "1", name: "João Silva" },
-    { id: "2", name: "Maria Santos" },
-    { id: "3", name: "Pedro Costa" },
-  ]
-
-  const filteredReports = reports.filter((report) => {
+  const filteredReports = reports?.filter((report) => {
     const matchesClient = selectedClient === "all" || report.clientId === selectedClient
     const matchesStatus = selectedStatus === "all" || report.status === selectedStatus
     const matchesSearch =
@@ -146,36 +101,25 @@ export function ReportsManagementSection() {
     }
   }
 
-  const addReport = (newReport: Omit<Report, "id">) => {
-    const report: Report = {
-      ...newReport,
-      id: Date.now().toString(),
-    }
-    setReports([report, ...reports])
+  const handleAddReport = (newReport: Omit<Report, "id">) => {
+    addReport(newReport)
   }
 
   const sendReport = (id: string) => {
-    setReports(
-      reports.map((report) =>
-        report.id === id
-          ? {
-              ...report,
-              status: "sent" as const,
-              sentAt: new Date().toISOString().split("T")[0],
-            }
-          : report,
-      ),
-    )
+    editReport(id, {
+      status: "sent" as const,
+      sentAt: new Date().toISOString().split("T")[0],
+    })
   }
 
   const deleteReport = (id: string) => {
-    setReports(reports.filter((report) => report.id !== id))
+    removeReport(id)
   }
 
-  const totalReports = reports.length
-  const draftReports = reports.filter((r) => r.status === "draft").length
-  const sentReports = reports.filter((r) => r.status === "sent").length
-  const viewedReports = reports.filter((r) => r.status === "viewed").length
+  const totalReports = reports?.length || 0
+  const draftReports = reports?.filter((r) => r.status === "draft").length || 0
+  const sentReports = reports?.filter((r) => r.status === "sent").length || 0
+  const viewedReports = reports?.filter((r) => r.status === "viewed").length || 0
 
   return (
     <div className="space-y-6">
@@ -264,7 +208,7 @@ export function ReportsManagementSection() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Clientes</SelectItem>
-                  {clients.map((client) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -289,7 +233,7 @@ export function ReportsManagementSection() {
 
       {/* Reports List */}
       <div className="grid gap-4">
-        {filteredReports.map((report) => (
+        {filteredReports?.map((report) => (
           <Card key={report.id} className="shadow-sm">
             <CardContent className="p-6">
               <div className="flex justify-between items-start">
@@ -358,7 +302,7 @@ export function ReportsManagementSection() {
         ))}
       </div>
 
-      {filteredReports.length === 0 && (
+      {filteredReports?.length === 0 && (
         <Card>
           <CardContent className="text-center py-8">
             <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -368,7 +312,7 @@ export function ReportsManagementSection() {
         </Card>
       )}
 
-      <NewReportDialog open={showNewReportDialog} onOpenChange={setShowNewReportDialog} onAddReport={addReport} />
+      <NewReportDialog open={showNewReportDialog} onOpenChange={setShowNewReportDialog} onAddReport={handleAddReport} />
     </div>
   )
 }

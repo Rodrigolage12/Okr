@@ -1,10 +1,9 @@
 "use client"
-
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Target, TrendingUp, Calendar, Clock, CheckCircle, AlertCircle } from "lucide-react"
+import { useOKRs } from "@/hooks/use-supabase-data"
 
 interface KeyResult {
   id: string
@@ -34,104 +33,7 @@ interface ClientOKRSectionProps {
 }
 
 export function ClientOKRSection({ userId }: ClientOKRSectionProps) {
-  const [okrs] = useState<OKR[]>([
-    {
-      id: "1",
-      objective: "Aumentar a satisfação do cliente",
-      progress: 75,
-      status: "on-track",
-      quarter: "Q1 2024",
-      dueDate: "2024-03-31",
-      createdBy: "Ana Silva - Consultora",
-      lastUpdated: "2024-01-15",
-      keyResults: [
-        {
-          id: "1",
-          description: "Alcançar NPS de 80 pontos",
-          progress: 80,
-          target: 80,
-          current: 64,
-          unit: "pontos",
-          status: "on-track",
-          lastUpdated: "2024-01-15",
-        },
-        {
-          id: "2",
-          description: "Reduzir tempo de resposta para 2 horas",
-          progress: 70,
-          target: 2,
-          current: 2.8,
-          unit: "horas",
-          status: "at-risk",
-          lastUpdated: "2024-01-14",
-        },
-      ],
-    },
-    {
-      id: "2",
-      objective: "Expandir base de clientes",
-      progress: 45,
-      status: "at-risk",
-      quarter: "Q1 2024",
-      dueDate: "2024-03-31",
-      createdBy: "Carlos Santos - Diretor",
-      lastUpdated: "2024-01-12",
-      keyResults: [
-        {
-          id: "3",
-          description: "Adquirir 500 novos clientes",
-          progress: 40,
-          target: 500,
-          current: 200,
-          unit: "clientes",
-          status: "at-risk",
-          lastUpdated: "2024-01-12",
-        },
-        {
-          id: "4",
-          description: "Aumentar receita em 30%",
-          progress: 50,
-          target: 30,
-          current: 15,
-          unit: "%",
-          status: "on-track",
-          lastUpdated: "2024-01-10",
-        },
-      ],
-    },
-    {
-      id: "3",
-      objective: "Melhorar eficiência operacional",
-      progress: 25,
-      status: "off-track",
-      quarter: "Q1 2024",
-      dueDate: "2024-03-31",
-      createdBy: "Ana Silva - Consultora",
-      lastUpdated: "2024-01-08",
-      keyResults: [
-        {
-          id: "5",
-          description: "Reduzir custos operacionais em 15%",
-          progress: 30,
-          target: 15,
-          current: 4.5,
-          unit: "%",
-          status: "off-track",
-          lastUpdated: "2024-01-08",
-        },
-        {
-          id: "6",
-          description: "Automatizar 80% dos processos manuais",
-          progress: 20,
-          target: 80,
-          current: 16,
-          unit: "%",
-          status: "off-track",
-          lastUpdated: "2024-01-05",
-        },
-      ],
-    },
-  ])
+  const { okrs, loading, error } = useOKRs(userId)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -173,10 +75,10 @@ export function ClientOKRSection({ userId }: ClientOKRSectionProps) {
   }
 
   const overallProgress =
-    okrs.length > 0 ? Math.round(okrs.reduce((sum, okr) => sum + okr.progress, 0) / okrs.length) : 0
-  const onTrackCount = okrs.filter((okr) => okr.status === "on-track").length
-  const atRiskCount = okrs.filter((okr) => okr.status === "at-risk").length
-  const offTrackCount = okrs.filter((okr) => okr.status === "off-track").length
+    okrs?.length > 0 ? Math.round(okrs.reduce((sum, okr) => sum + okr.progress, 0) / okrs.length) : 0
+  const onTrackCount = okrs?.filter((okr) => okr.status === "on-track").length
+  const atRiskCount = okrs?.filter((okr) => okr.status === "at-risk").length
+  const offTrackCount = okrs?.filter((okr) => okr.status === "off-track").length
 
   return (
     <div className="space-y-6">
@@ -192,7 +94,7 @@ export function ClientOKRSection({ userId }: ClientOKRSectionProps) {
             <div className="flex items-center space-x-2">
               <Target className="w-8 h-8 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{okrs.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{okrs?.length}</p>
                 <p className="text-sm text-gray-600">Total de OKRs</p>
               </div>
             </div>
@@ -240,7 +142,7 @@ export function ClientOKRSection({ userId }: ClientOKRSectionProps) {
 
       {/* OKRs List */}
       <div className="grid gap-6">
-        {okrs.map((okr) => (
+        {okrs?.map((okr) => (
           <Card key={okr.id} className="shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -326,7 +228,7 @@ export function ClientOKRSection({ userId }: ClientOKRSectionProps) {
         ))}
       </div>
 
-      {okrs.length === 0 && (
+      {okrs?.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />

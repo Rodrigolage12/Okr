@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Target, TrendingUp, Filter, Edit2, Trash2, CheckCircle, AlertCircle, Clock } from "lucide-react"
 import { NewOKRDialog } from "@/components/admin/new-okr-dialog"
+import { useOKRs, useClients } from "@/hooks/use-supabase-data"
 
 interface KeyResult {
   id: string
@@ -35,77 +36,13 @@ interface OKR {
 }
 
 export function OKRManagementSection() {
-  const [okrs, setOKRs] = useState<OKR[]>([
-    {
-      id: "1",
-      clientId: "1",
-      clientName: "João Silva",
-      objective: "Aumentar a satisfação do cliente",
-      progress: 75,
-      status: "on-track",
-      quarter: "Q1 2024",
-      dueDate: "2024-03-31",
-      createdBy: "Ana Silva",
-      lastUpdated: "2024-01-15",
-      keyResults: [
-        {
-          id: "1",
-          description: "Alcançar NPS de 80 pontos",
-          progress: 80,
-          target: 80,
-          current: 64,
-          unit: "pontos",
-          status: "on-track",
-          lastUpdated: "2024-01-15",
-        },
-        {
-          id: "2",
-          description: "Reduzir tempo de resposta para 2 horas",
-          progress: 70,
-          target: 2,
-          current: 2.8,
-          unit: "horas",
-          status: "at-risk",
-          lastUpdated: "2024-01-14",
-        },
-      ],
-    },
-    {
-      id: "2",
-      clientId: "2",
-      clientName: "Maria Santos",
-      objective: "Expandir base de clientes",
-      progress: 45,
-      status: "at-risk",
-      quarter: "Q1 2024",
-      dueDate: "2024-03-31",
-      createdBy: "Carlos Santos",
-      lastUpdated: "2024-01-12",
-      keyResults: [
-        {
-          id: "3",
-          description: "Adquirir 500 novos clientes",
-          progress: 40,
-          target: 500,
-          current: 200,
-          unit: "clientes",
-          status: "at-risk",
-          lastUpdated: "2024-01-12",
-        },
-      ],
-    },
-  ])
+  const { okrs, loading, error, addOKR, editOKR, removeOKR } = useOKRs()
+  const { clients } = useClients()
 
   const [showNewOKRDialog, setShowNewOKRDialog] = useState(false)
   const [selectedClient, setSelectedClient] = useState<string>("all")
 
-  const clients = [
-    { id: "1", name: "João Silva" },
-    { id: "2", name: "Maria Santos" },
-    { id: "3", name: "Pedro Costa" },
-  ]
-
-  const filteredOKRs = selectedClient === "all" ? okrs : okrs.filter((okr) => okr.clientId === selectedClient)
+  const filteredOKRs = selectedClient === "all" ? okrs : okrs?.filter((okr) => okr.clientId === selectedClient)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -146,22 +83,23 @@ export function OKRManagementSection() {
     }
   }
 
-  const addOKR = (newOKR: Omit<OKR, "id">) => {
-    const okr: OKR = {
-      ...newOKR,
-      id: Date.now().toString(),
+  const handleAddOKR = async (okrData: any) => {
+    try {
+      await addOKR(okrData)
+      setShowNewOKRDialog(false)
+    } catch (error) {
+      console.error("Error adding OKR:", error)
     }
-    setOKRs([...okrs, okr])
   }
 
   const deleteOKR = (id: string) => {
-    setOKRs(okrs.filter((okr) => okr.id !== id))
+    removeOKR(id)
   }
 
-  const totalOKRs = okrs.length
-  const onTrackCount = okrs.filter((okr) => okr.status === "on-track").length
-  const atRiskCount = okrs.filter((okr) => okr.status === "at-risk").length
-  const offTrackCount = okrs.filter((okr) => okr.status === "off-track").length
+  const totalOKRs = okrs?.length || 0
+  const onTrackCount = okrs?.filter((okr) => okr.status === "on-track").length || 0
+  const atRiskCount = okrs?.filter((okr) => okr.status === "at-risk").length || 0
+  const offTrackCount = okrs?.filter((okr) => okr.status === "off-track").length || 0
 
   return (
     <div className="space-y-6">
@@ -239,7 +177,7 @@ export function OKRManagementSection() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Clientes</SelectItem>
-                  {clients.map((client) => (
+                  {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -248,8 +186,8 @@ export function OKRManagementSection() {
               </Select>
             </div>
             <div className="text-sm text-gray-600">
-              {filteredOKRs.length} OKR{filteredOKRs.length !== 1 ? "s" : ""} encontrado
-              {filteredOKRs.length !== 1 ? "s" : ""}
+              {filteredOKRs?.length} OKR{filteredOKRs?.length !== 1 ? "s" : ""} encontrado
+              {filteredOKRs?.length !== 1 ? "s" : ""}
             </div>
           </div>
         </CardContent>
@@ -257,7 +195,7 @@ export function OKRManagementSection() {
 
       {/* OKRs List */}
       <div className="grid gap-6">
-        {filteredOKRs.map((okr) => (
+        {filteredOKRs?.map((okr) => (
           <Card key={okr.id} className="shadow-sm">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -341,7 +279,7 @@ export function OKRManagementSection() {
         ))}
       </div>
 
-      {filteredOKRs.length === 0 && (
+      {filteredOKRs?.length === 0 && (
         <Card>
           <CardContent className="text-center py-8">
             <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -353,7 +291,7 @@ export function OKRManagementSection() {
         </Card>
       )}
 
-      <NewOKRDialog open={showNewOKRDialog} onOpenChange={setShowNewOKRDialog} onAddOKR={addOKR} />
+      <NewOKRDialog open={showNewOKRDialog} onOpenChange={setShowNewOKRDialog} onAddOKR={handleAddOKR} />
     </div>
   )
 }
