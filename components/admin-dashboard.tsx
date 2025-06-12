@@ -21,6 +21,11 @@ interface AdminDashboardProps {
 export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("clients")
 
+  const handleLogout = () => {
+    console.log("Admin dashboard logout clicked")
+    onLogout()
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -38,7 +43,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Olá, {user.name}</span>
-              <Button variant="outline" size="sm" onClick={onLogout} className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center space-x-2">
                 <LogOut className="w-4 h-4" />
                 <span>Sair</span>
               </Button>

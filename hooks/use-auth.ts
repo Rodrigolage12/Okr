@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 export interface AuthUser {
   id: string
@@ -15,13 +14,17 @@ export interface AuthUser {
 // Mock auth state for development
 const getMockUser = () => {
   if (typeof window !== "undefined") {
-    const savedUser = localStorage.getItem("mockUser")
-    if (savedUser) {
-      try {
-        return JSON.parse(savedUser)
-      } catch (e) {
-        console.error("Error parsing saved user:", e)
+    try {
+      const savedUser = localStorage.getItem("mockUser")
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser)
+        console.log("Found saved user:", parsed.email, parsed.type)
+        return parsed
       }
+    } catch (e) {
+      console.error("Error parsing saved user:", e)
+      // Clear corrupted data
+      localStorage.removeItem("mockUser")
     }
   }
   return null
@@ -32,7 +35,6 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
   const [isAuth, setIsAuth] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
     let mounted = true
@@ -51,11 +53,14 @@ export function useAuth() {
 
         console.log("Initializing auth...")
 
+        // Small delay to ensure DOM is ready
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
         // Check for mock user in localStorage
         const mockUser = getMockUser()
 
         if (mockUser && mounted) {
-          console.log("Found mock user:", mockUser.email)
+          console.log("Restoring user session:", mockUser.email)
 
           const authUser: AuthUser = {
             id: mockUser.id,
@@ -68,17 +73,13 @@ export function useAuth() {
 
           setUser(authUser)
           setIsAuth(true)
-          setLoading(false)
+          console.log("User session restored successfully")
         } else {
-          console.log("No user found, redirecting to login")
-          if (mounted) {
-            setLoading(false)
+          console.log("No user session found")
+        }
 
-            // Only redirect if we're not already on the login page
-            if (typeof window !== "undefined" && window.location.pathname !== "/") {
-              router.push("/")
-            }
-          }
+        if (mounted) {
+          setLoading(false)
         }
       } catch (error: any) {
         console.error("Error initializing auth:", error)
@@ -94,28 +95,34 @@ export function useAuth() {
     return () => {
       mounted = false
     }
-  }, [router])
+  }, [])
 
   const handleLogout = async () => {
     try {
       setError(null)
-      setLoading(true)
+      console.log("Starting logout process...")
 
-      // Clear mock user
+      // Clear mock user from localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("mockUser")
+        console.log("Cleared localStorage")
       }
 
+      // Reset auth state
       setUser(null)
       setIsAuth(false)
 
       console.log("User logged out successfully")
-      router.push("/")
+
+      // Small delay before redirect to ensure state is updated
+      setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.location.href = "/"
+        }
+      }, 100)
     } catch (error: any) {
       console.error("Error logging out:", error)
       setError(error.message || "Erro ao fazer logout")
-    } finally {
-      setLoading(false)
     }
   }
 

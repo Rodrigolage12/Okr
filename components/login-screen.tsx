@@ -76,7 +76,7 @@ export function LoginScreen() {
     if (user) {
       console.log("User already logged in:", user)
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/")
       }, 1000)
     }
   }, [router])
@@ -101,7 +101,7 @@ export function LoginScreen() {
         setSuccess("Login realizado com sucesso!")
 
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/")
         }, 1000)
         return
       }
@@ -112,7 +112,7 @@ export function LoginScreen() {
       setSuccess("Login realizado com sucesso!")
 
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/")
       }, 1000)
     } catch (error: any) {
       console.error("Admin login error:", error)
@@ -143,7 +143,7 @@ export function LoginScreen() {
         setSuccess("Login realizado com sucesso!")
 
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/")
         }, 1000)
         return
       }
@@ -166,7 +166,7 @@ export function LoginScreen() {
         setSuccess("Login realizado com sucesso!")
 
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/")
         }, 1000)
         return
       }
@@ -178,7 +178,7 @@ export function LoginScreen() {
       setSuccess("Login realizado com sucesso!")
 
       setTimeout(() => {
-        router.push("/dashboard")
+        router.push("/")
       }, 1000)
     } catch (error: any) {
       console.error("Client login error:", error)

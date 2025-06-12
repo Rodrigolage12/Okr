@@ -15,6 +15,11 @@ interface DashboardProps {
 export function Dashboard({ onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("processes")
 
+  const handleLogout = () => {
+    console.log("Dashboard logout clicked")
+    onLogout()
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -27,7 +32,7 @@ export function Dashboard({ onLogout }: DashboardProps) {
               </div>
               <h1 className="text-xl font-bold text-gray-900">Gestão de Processos</h1>
             </div>
-            <Button variant="outline" size="sm" onClick={onLogout} className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center space-x-2">
               <LogOut className="w-4 h-4" />
               <span>Sair</span>
             </Button>
