@@ -1,8 +1,19 @@
 import { supabase } from "./supabase"
 import type { User, Client, OKR, Report, Task, Meeting } from "./supabase"
 
+// Helper function to check if Supabase is properly configured
+const isSupabaseConfigured = () => {
+  const url = supabase.supabaseUrl
+  const key = supabase.supabaseKey
+  return url && key && !url.includes("your-project") && !key.includes("your-anon-key")
+}
+
 // User operations
 export const getUser = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("users").select("*").eq("id", id).single()
 
@@ -18,6 +29,10 @@ export const getUser = async (id: string) => {
 }
 
 export const createUser = async (userData: Partial<User>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("users").insert([userData]).select().single()
 
@@ -33,6 +48,10 @@ export const createUser = async (userData: Partial<User>) => {
 }
 
 export const updateUser = async (id: string, userData: Partial<User>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("users")
@@ -54,10 +73,15 @@ export const updateUser = async (id: string, userData: Partial<User>) => {
 
 // Client operations
 export const getClients = async () => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("clients").select("*").order("name")
 
     if (error) {
+      console.error("Supabase error getting clients:", error)
       throw error
     }
 
@@ -69,10 +93,37 @@ export const getClients = async () => {
 }
 
 export const createClient = async (clientData: Partial<Client>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
-    const { data, error } = await supabase.from("clients").insert([clientData]).select().single()
+    // Ensure all required fields are present
+    const requiredFields = ["name", "email", "username", "password", "company"]
+    for (const field of requiredFields) {
+      if (!clientData[field as keyof Client]) {
+        throw new Error(`Missing required field: ${field}`)
+      }
+    }
+
+    const { data, error } = await supabase
+      .from("clients")
+      .insert([
+        {
+          name: clientData.name,
+          email: clientData.email,
+          username: clientData.username,
+          password: clientData.password,
+          company: clientData.company,
+          phone: clientData.phone || null,
+          address: clientData.address || null,
+        },
+      ])
+      .select()
+      .single()
 
     if (error) {
+      console.error("Supabase error creating client:", error)
       throw error
     }
 
@@ -84,6 +135,10 @@ export const createClient = async (clientData: Partial<Client>) => {
 }
 
 export const updateClient = async (id: string, clientData: Partial<Client>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("clients")
@@ -104,6 +159,10 @@ export const updateClient = async (id: string, clientData: Partial<Client>) => {
 }
 
 export const deleteClient = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { error } = await supabase.from("clients").delete().eq("id", id)
 
@@ -118,6 +177,10 @@ export const deleteClient = async (id: string) => {
 
 // OKR operations
 export const getOKRs = async (clientId?: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     let query = supabase
       .from("okrs")
@@ -145,6 +208,10 @@ export const getOKRs = async (clientId?: string) => {
 }
 
 export const createOKR = async (okrData: Partial<OKR>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("okrs").insert([okrData]).select().single()
 
@@ -160,6 +227,10 @@ export const createOKR = async (okrData: Partial<OKR>) => {
 }
 
 export const updateOKR = async (id: string, okrData: Partial<OKR>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("okrs")
@@ -180,6 +251,10 @@ export const updateOKR = async (id: string, okrData: Partial<OKR>) => {
 }
 
 export const deleteOKR = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { error } = await supabase.from("okrs").delete().eq("id", id)
 
@@ -194,6 +269,10 @@ export const deleteOKR = async (id: string) => {
 
 // Report operations
 export const getReports = async (clientId?: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     let query = supabase.from("reports").select("*").order("created_at", { ascending: false })
 
@@ -215,6 +294,10 @@ export const getReports = async (clientId?: string) => {
 }
 
 export const createReport = async (reportData: Partial<Report>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("reports").insert([reportData]).select().single()
 
@@ -230,6 +313,10 @@ export const createReport = async (reportData: Partial<Report>) => {
 }
 
 export const updateReport = async (id: string, reportData: Partial<Report>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("reports")
@@ -250,6 +337,10 @@ export const updateReport = async (id: string, reportData: Partial<Report>) => {
 }
 
 export const deleteReport = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { error } = await supabase.from("reports").delete().eq("id", id)
 
@@ -264,6 +355,10 @@ export const deleteReport = async (id: string) => {
 
 // Task operations
 export const getTasks = async (clientId?: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     let query = supabase.from("tasks").select("*").order("created_at", { ascending: false })
 
@@ -285,6 +380,10 @@ export const getTasks = async (clientId?: string) => {
 }
 
 export const createTask = async (taskData: Partial<Task>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("tasks").insert([taskData]).select().single()
 
@@ -300,6 +399,10 @@ export const createTask = async (taskData: Partial<Task>) => {
 }
 
 export const updateTask = async (id: string, taskData: Partial<Task>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("tasks")
@@ -320,6 +423,10 @@ export const updateTask = async (id: string, taskData: Partial<Task>) => {
 }
 
 export const deleteTask = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { error } = await supabase.from("tasks").delete().eq("id", id)
 
@@ -334,6 +441,10 @@ export const deleteTask = async (id: string) => {
 
 // Meeting operations
 export const getMeetings = async (clientId?: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     let query = supabase.from("meetings").select("*").order("date", { ascending: true })
 
@@ -355,6 +466,10 @@ export const getMeetings = async (clientId?: string) => {
 }
 
 export const createMeeting = async (meetingData: Partial<Meeting>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase.from("meetings").insert([meetingData]).select().single()
 
@@ -370,6 +485,10 @@ export const createMeeting = async (meetingData: Partial<Meeting>) => {
 }
 
 export const updateMeeting = async (id: string, meetingData: Partial<Meeting>) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { data, error } = await supabase
       .from("meetings")
@@ -390,6 +509,10 @@ export const updateMeeting = async (id: string, meetingData: Partial<Meeting>) =
 }
 
 export const deleteMeeting = async (id: string) => {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase not configured")
+  }
+
   try {
     const { error } = await supabase.from("meetings").delete().eq("id", id)
 
