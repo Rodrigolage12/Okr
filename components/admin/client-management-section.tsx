@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -30,49 +30,7 @@ interface Client {
 export function ClientManagementSection() {
   const { clients: supabaseClients, loading, error, addClient: addSupabaseClient, removeClient } = useClients()
 
-  // Convert Supabase clients to local format or use fallback data
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: "1",
-      name: "João Silva",
-      email: "joao@empresa.com",
-      company: "Tech Solutions",
-      username: "joao_silva",
-      password: "senha123",
-      status: "active",
-      okrsCount: 3,
-      tasksCount: 12,
-      lastActivity: "2024-01-15",
-      joinedDate: "2024-01-01",
-    },
-    {
-      id: "2",
-      name: "Maria Santos",
-      email: "maria@startup.com",
-      company: "Startup Inovadora",
-      username: "maria_santos",
-      password: "senha456",
-      status: "active",
-      okrsCount: 2,
-      tasksCount: 8,
-      lastActivity: "2024-01-14",
-      joinedDate: "2024-01-05",
-    },
-    {
-      id: "3",
-      name: "Pedro Costa",
-      email: "pedro@consultoria.com",
-      company: "Consultoria Pro",
-      username: "pedro_costa",
-      password: "senha789",
-      status: "inactive",
-      okrsCount: 1,
-      tasksCount: 3,
-      lastActivity: "2024-01-10",
-      joinedDate: "2023-12-20",
-    },
-  ])
-
+  const [clients, setClients] = useState<Client[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [showNewClientDialog, setShowNewClientDialog] = useState(false)
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false)
@@ -82,6 +40,70 @@ export function ClientManagementSection() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [selectedClientForView, setSelectedClientForView] = useState<Client | null>(null)
   const [selectedClientForEdit, setSelectedClientForEdit] = useState<Client | null>(null)
+
+  // Convert Supabase clients to local format or use fallback data
+  useEffect(() => {
+    if (supabaseClients && supabaseClients.length > 0) {
+      // Use real Supabase data
+      const convertedClients = supabaseClients.map((client: any) => ({
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        company: client.phone || "Empresa não informada", // Using phone field as company
+        username: client.email.split("@")[0], // Generate username from email
+        password: "••••••••", // Hidden password
+        status: "active" as const,
+        okrsCount: 0, // Will be calculated from related data
+        tasksCount: 0, // Will be calculated from related data
+        lastActivity: client.updated_at || client.created_at,
+        joinedDate: client.created_at,
+      }))
+      setClients(convertedClients)
+    } else if (!loading && !error) {
+      // Use fallback mock data only if Supabase is not working
+      setClients([
+        {
+          id: "mock-1",
+          name: "João Silva",
+          email: "joao@empresa.com",
+          company: "Tech Solutions",
+          username: "joao_silva",
+          password: "••••••••",
+          status: "active",
+          okrsCount: 3,
+          tasksCount: 12,
+          lastActivity: "2024-01-15",
+          joinedDate: "2024-01-01",
+        },
+        {
+          id: "mock-2",
+          name: "Maria Santos",
+          email: "maria@startup.com",
+          company: "Startup Inovadora",
+          username: "maria_santos",
+          password: "••••••••",
+          status: "active",
+          okrsCount: 2,
+          tasksCount: 8,
+          lastActivity: "2024-01-14",
+          joinedDate: "2024-01-05",
+        },
+        {
+          id: "mock-3",
+          name: "Pedro Costa",
+          email: "pedro@consultoria.com",
+          company: "Consultoria Pro",
+          username: "pedro_costa",
+          password: "••••••••",
+          status: "inactive",
+          okrsCount: 1,
+          tasksCount: 3,
+          lastActivity: "2024-01-10",
+          joinedDate: "2023-12-20",
+        },
+      ])
+    }
+  }, [supabaseClients, loading, error])
 
   const viewClient = (client: Client) => {
     setSelectedClientForView(client)
@@ -100,12 +122,19 @@ export function ClientManagementSection() {
   const deleteClient = async (id: string) => {
     if (confirm("Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.")) {
       try {
-        await removeClient(id)
-        setClients(clients.filter((client) => client.id !== id))
+        // Check if it's a mock ID (starts with "mock-")
+        if (id.startsWith("mock-")) {
+          // Only remove from local state for mock data
+          setClients(clients.filter((client) => client.id !== id))
+        } else {
+          // Try to delete from Supabase for real UUIDs
+          await removeClient(id)
+          setClients(clients.filter((client) => client.id !== id))
+        }
       } catch (error) {
         console.error("Error deleting client:", error)
-        // Fallback to local deletion if Supabase fails
-        setClients(clients.filter((client) => client.id !== id))
+        // Show user-friendly error message
+        alert("Erro ao excluir cliente. Tente novamente.")
       }
     }
   }
@@ -119,22 +148,39 @@ export function ClientManagementSection() {
   )
 
   const addClient = async (newClient: Omit<Client, "id">) => {
-    const client: Client = {
-      ...newClient,
-      id: Date.now().toString(),
-    }
-
     try {
-      await addSupabaseClient({
-        name: client.name,
-        email: client.email,
-        phone: client.company, // Using company as phone for now
+      const supabaseClient = await addSupabaseClient({
+        name: newClient.name,
+        email: newClient.email,
+        phone: newClient.company, // Using company as phone for now
       })
-      setClients([...clients, client])
+
+      // Add to local state with Supabase ID
+      const client: Client = {
+        ...newClient,
+        id: supabaseClient.id,
+        status: "active",
+        okrsCount: 0,
+        tasksCount: 0,
+        lastActivity: new Date().toISOString(),
+        joinedDate: new Date().toISOString(),
+      }
+
+      setClients([client, ...clients])
     } catch (error) {
-      console.error("Error adding client to Supabase:", error)
-      // Fallback to local addition
-      setClients([...clients, client])
+      console.error("Error adding client:", error)
+
+      // Fallback to local addition with mock ID
+      const client: Client = {
+        ...newClient,
+        id: `mock-${Date.now()}`,
+        status: "active",
+        okrsCount: 0,
+        tasksCount: 0,
+        lastActivity: new Date().toISOString(),
+        joinedDate: new Date().toISOString(),
+      }
+      setClients([client, ...clients])
     }
   }
 
@@ -159,16 +205,13 @@ export function ClientManagementSection() {
     return <div className="flex justify-center items-center h-64">Carregando clientes...</div>
   }
 
-  if (error) {
-    console.warn("Supabase error, using fallback data:", error)
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Gerenciamento de Clientes</h2>
           <p className="text-gray-600">Gerencie todos os clientes e suas credenciais de acesso</p>
+          {error && <p className="text-sm text-amber-600 mt-1">⚠️ Usando dados locais (Supabase: {error})</p>}
         </div>
         <Button onClick={() => setShowNewClientDialog(true)} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -269,6 +312,7 @@ export function ClientManagementSection() {
                     <p className="text-sm text-gray-600">{client.email}</p>
                     <p className="text-sm text-gray-500">{client.company}</p>
                     <p className="text-sm text-blue-600 font-medium">Login: {client.username}</p>
+                    {client.id.startsWith("mock-") && <p className="text-xs text-amber-600">📝 Dados locais</p>}
                   </div>
                 </div>
 
