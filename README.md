@@ -1,30 +1,125 @@
-# Continue okr mobile app
+# OKR Mobile App
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Sistema completo para gerenciamento de OKRs (Objectives and Key Results), clientes, relatórios e tarefas.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rodrigodecastrolage-2549s-projects/v0-continue-okr-mobile-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/tc9WFmWnHGj)
+## 🚀 Funcionalidades
 
-## Overview
+### Para Administradores
+- **Gerenciamento de Clientes**: Criar, editar, visualizar e excluir clientes
+- **Gestão de OKRs**: Definir objetivos e resultados-chave para clientes
+- **Relatórios**: Gerar e enviar relatórios personalizados
+- **Tarefas**: Gerenciar tarefas e acompanhar progresso
+- **Agenda**: Agendar reuniões e consultorias
+- **Configurações**: Gerenciar configurações do sistema
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+### Para Clientes
+- **Dashboard Pessoal**: Visualizar seus OKRs e progresso
+- **Relatórios**: Acessar relatórios enviados pelo admin
+- **Tarefas**: Ver tarefas atribuídas e status
+- **Agenda**: Agendar reuniões com consultores
+- **Processos**: Acompanhar processos em andamento
 
-## Deployment
+## 🛠️ Tecnologias
 
-Your project is live at:
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Deployment**: Vercel
 
-**[https://vercel.com/rodrigodecastrolage-2549s-projects/v0-continue-okr-mobile-app](https://vercel.com/rodrigodecastrolage-2549s-projects/v0-continue-okr-mobile-app)**
+## 📦 Instalação
 
-## Build your app
+1. Clone o repositório:
+\`\`\`bash
+git clone <repository-url>
+cd okr-mobile-app
+\`\`\`
 
-Continue building your app on:
+2. Instale as dependências:
+\`\`\`bash
+npm install
+\`\`\`
 
-**[https://v0.dev/chat/projects/tc9WFmWnHGj](https://v0.dev/chat/projects/tc9WFmWnHGj)**
+3. Configure as variáveis de ambiente:
+\`\`\`bash
+cp .env.example .env.local
+\`\`\`
 
-## How It Works
+4. Configure o Supabase:
+   - Crie um projeto em [supabase.com](https://supabase.com)
+   - Execute os scripts SQL na pasta `scripts/`
+   - Atualize as variáveis de ambiente
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+5. Execute o projeto:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+## 🗄️ Configuração do Banco de Dados
+
+Execute os scripts SQL na seguinte ordem:
+
+1. `scripts/01-create-tables.sql` - Cria todas as tabelas
+2. `scripts/02-enable-rls.sql` - Configura Row Level Security
+3. `scripts/03-seed-data.sql` - Insere dados de exemplo
+4. `scripts/04-fix-clients-table.sql` - Corrige estrutura da tabela clients
+
+## 🔐 Credenciais de Teste
+
+### Administrador
+- Email: `rodrigocastrolage@gmail.com`
+- Senha: `123456`
+
+### Clientes
+- Email: `joao@empresa.com` / Senha: `123456`
+- Email: `maria@empresa.com` / Senha: `123456`
+
+## 🚀 Deploy
+
+### Vercel (Recomendado)
+
+1. Conecte seu repositório ao Vercel
+2. Configure as variáveis de ambiente:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+3. Deploy automático
+
+### Outras Plataformas
+
+O app é compatível com qualquer plataforma que suporte Next.js:
+- Netlify
+- Railway
+- Render
+- AWS Amplify
+
+## 📱 Funcionalidades Principais
+
+### Sistema Híbrido
+- **Modo Supabase**: Dados reais persistidos no banco
+- **Modo Fallback**: Dados locais se Supabase não disponível
+- **Transição Automática**: Sem downtime durante configuração
+
+### Segurança
+- **Row Level Security (RLS)**: Dados isolados por usuário
+- **Autenticação JWT**: Tokens seguros do Supabase
+- **Validação de Dados**: Sanitização e validação completa
+
+### Interface
+- **Responsiva**: Funciona em desktop e mobile
+- **Acessível**: Seguindo padrões WCAG
+- **Intuitiva**: Design limpo e moderno
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
+
+## 📞 Suporte
+
+Para suporte, entre em contato através do email: rodrigocastrolage@gmail.com
