@@ -1,362 +1,165 @@
 import { supabase } from "./supabase"
-import type { User } from "@supabase/supabase-js"
-import { createUser } from "./supabase-db"
 
-export interface AuthUser {
-  id: string
-  email: string
-  name: string
-  username?: string
-  type: "admin" | "client"
-  companyId?: string
+// Mock users for fallback
+const MOCK_USERS = {
+  "rodrigocastrolage@gmail.com": {
+    id: "admin-1",
+    email: "rodrigocastrolage@gmail.com",
+    name: "Rodrigo Castro",
+    type: "admin" as const,
+    password: "123456",
+  },
+  "joao@empresa.com": {
+    id: "client-1",
+    email: "joao@empresa.com",
+    name: "João Silva",
+    type: "client" as const,
+    password: "123456",
+  },
+  "maria@empresa.com": {
+    id: "client-2",
+    email: "maria@empresa.com",
+    name: "Maria Santos",
+    type: "client" as const,
+    password: "123456",
+  },
 }
 
 // Check if Supabase is properly configured
 const isSupabaseConfigured = () => {
-  try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    return !!(url && key && url !== "your-supabase-url" && key !== "your-supabase-anon-key")
-  } catch {
-    return false
-  }
+  const url = supabase.supabaseUrl
+  const key = supabase.supabaseKey
+  return url && key && !url.includes("your-project") && !key.includes("your-anon-key")
 }
 
-// Test Supabase connection
-const testSupabaseConnection = async () => {
-  try {
-    if (!isSupabaseConfigured()) return false
+// Store current user in localStorage for persistence
+const STORAGE_KEY = "okr_current_user"
 
-    // Try a simple query to test connection
-    const { data, error } = await supabase.from("users").select("count").limit(1)
-    return !error
-  } catch {
-    return false
-  }
-}
-
-// Sign in with email and password
 export const signIn = async (email: string, password: string) => {
-  try {
-    console.log("Attempting sign in for:", email)
+  if (isSupabaseConfigured()) {
+    try {
+      // Try Supabase authentication first
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    // Check if Supabase is configured and working
-    const supabaseWorking = await testSupabaseConnection()
+      if (error) throw error
 
-    if (!supabaseWorking) {
-      console.log("Supabase not available, using mock authentication")
-      return mockSignIn(email, password)
-    }
+      if (data.user) {
+        // Get user profile from users table
+        const { data: profile, error: profileError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", email)
+          .single()
 
-    // Try to sign in with Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+        if (profileError) {
+          // If no profile exists, create one
+          const newProfile = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.email?.split("@")[0] || "User",
+            type: email === "rodrigocastrolage@gmail.com" ? "admin" : "client",
+          }
 
-    if (error) {
-      console.log("Supabase sign in error:", error.message)
+          const { data: createdProfile, error: createError } = await supabase
+            .from("users")
+            .insert([newProfile])
+            .select()
+            .single()
 
-      // If user doesn't exist, try to create them
-      if (error.message === "Invalid login credentials") {
-        console.log("User not found, attempting to create account...")
-        return await createUserAndSignIn(email, password)
+          if (createError) throw createError
+
+          const user = {
+            id: createdProfile.id,
+            email: createdProfile.email,
+            name: createdProfile.name,
+            type: createdProfile.type,
+          }
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+          return user
+        }
+
+        const user = {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          type: profile.type,
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+        return user
       }
-
-      // If email not confirmed, handle gracefully
-      if (error.message === "Email not confirmed") {
-        console.log("Email not confirmed, using mock authentication")
-        return mockSignIn(email, password)
-      }
-
-      throw error
+    } catch (error) {
+      console.error("Supabase auth error:", error)
+      // Fall through to mock authentication
     }
-
-    console.log("Supabase sign in successful")
-    return data.user
-  } catch (error: any) {
-    console.error("Error signing in:", error)
-
-    // Fallback to mock authentication for development
-    console.log("Falling back to mock authentication")
-    return mockSignIn(email, password)
-  }
-}
-
-// Mock sign in for development (fallback)
-const mockSignIn = (email: string, password: string): User => {
-  console.log("Mock sign in attempt:", email)
-
-  // Mock users for development
-  const MOCK_USERS = {
-    "rodrigocastrolage@gmail.com": {
-      id: "550e8400-e29b-41d4-a716-446655440000",
-      email: "rodrigocastrolage@gmail.com",
-      name: "Rodrigo Castro",
-      type: "admin",
-    },
-    "joao@empresa.com": {
-      id: "550e8400-e29b-41d4-a716-446655440001",
-      email: "joao@empresa.com",
-      name: "João Silva",
-      username: "joao_silva",
-      type: "client",
-    },
-    "maria@empresa.com": {
-      id: "550e8400-e29b-41d4-a716-446655440002",
-      email: "maria@empresa.com",
-      name: "Maria Santos",
-      username: "maria_santos",
-      type: "client",
-    },
   }
 
+  // Mock authentication fallback
   const mockUser = MOCK_USERS[email as keyof typeof MOCK_USERS]
-
-  if (mockUser && password === "123456") {
-    return {
+  if (mockUser && mockUser.password === password) {
+    const user = {
       id: mockUser.id,
       email: mockUser.email,
-      user_metadata: {
-        name: mockUser.name,
-        username: mockUser.username,
-        type: mockUser.type,
-      },
-      app_metadata: {},
-      aud: "authenticated",
-      created_at: new Date().toISOString(),
-    } as User
+      name: mockUser.name,
+      type: mockUser.type,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
+    return user
   }
 
   throw new Error("Credenciais inválidas")
 }
 
-// Create user and sign in
-const createUserAndSignIn = async (email: string, password: string) => {
-  try {
-    console.log("Creating new user:", email)
-
-    // Determine user type and name based on email
-    const isAdmin = email === "rodrigocastrolage@gmail.com"
-    const userData = {
-      name: isAdmin ? "Rodrigo Castro" : email.split("@")[0].replace("_", " "),
-      type: isAdmin ? "admin" : "client",
-      username: !isAdmin ? email.split("@")[0] : undefined,
-    }
-
-    // Try to create the user
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData,
-      },
-    })
-
-    if (signUpError) {
-      console.log("Sign up error:", signUpError.message)
-      throw signUpError
-    }
-
-    if (signUpData.user) {
-      // Create user record in our users table
-      await createUser({
-        id: signUpData.user.id,
-        email: signUpData.user.email!,
-        name: userData.name,
-        username: userData.username,
-        type: userData.type as "admin" | "client",
-      })
-
-      return signUpData.user
-    }
-
-    throw new Error("Falha ao criar usuário")
-  } catch (error: any) {
-    console.error("Error creating user:", error)
-    // Fallback to mock authentication
-    return mockSignIn(email, password)
-  }
-}
-
-// Sign up with email and password
-export const signUp = async (email: string, password: string, userData?: any) => {
-  try {
-    if (!isSupabaseConfigured()) {
-      throw new Error("Supabase não configurado. Use as credenciais de teste.")
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData,
-      },
-    })
-
-    if (error) {
-      throw error
-    }
-
-    // Create user record in our users table
-    if (data.user) {
-      await createUser({
-        id: data.user.id,
-        email: data.user.email!,
-        name: userData?.name || email.split("@")[0],
-        username: userData?.username,
-        type: userData?.type || "client",
-      })
-    }
-
-    return data.user
-  } catch (error: any) {
-    console.error("Error signing up:", error)
-    throw new Error(error.message || "Erro ao criar conta")
-  }
-}
-
-// Sign out
 export const signOut = async () => {
-  try {
-    if (!isSupabaseConfigured()) {
-      console.log("Mock sign out")
-      return
+  if (isSupabaseConfigured()) {
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error("Supabase sign out error:", error)
     }
-
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.warn("Sign out error:", error)
-    }
-  } catch (error: any) {
-    console.warn("Error signing out:", error)
   }
+  localStorage.removeItem(STORAGE_KEY)
 }
 
-// Get current user
-export const getCurrentUser = async (): Promise<User | null> => {
-  try {
-    if (!isSupabaseConfigured()) {
-      return null
+export const getCurrentUser = async () => {
+  // Check localStorage first
+  const storedUser = localStorage.getItem(STORAGE_KEY)
+  if (storedUser) {
+    try {
+      return JSON.parse(storedUser)
+    } catch (error) {
+      console.error("Error parsing stored user:", error)
+      localStorage.removeItem(STORAGE_KEY)
     }
-
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
-
-    if (sessionError) {
-      console.warn("Session error:", sessionError)
-      return null
-    }
-
-    if (!session) {
-      return null
-    }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError) {
-      console.warn("User error:", userError)
-      return null
-    }
-
-    return user
-  } catch (error: any) {
-    console.warn("Error getting current user:", error)
-    return null
-  }
-}
-
-// Check if user is authenticated
-export const isAuthenticated = async (): Promise<boolean> => {
-  try {
-    if (!isSupabaseConfigured()) {
-      return false
-    }
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return !!session
-  } catch (error) {
-    console.warn("Error checking authentication:", error)
-    return false
-  }
-}
-
-// Get current session
-export const getCurrentSession = async () => {
-  try {
-    if (!isSupabaseConfigured()) {
-      return null
-    }
-
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession()
-
-    if (error) {
-      console.warn("Session error:", error)
-      return null
-    }
-
-    return session
-  } catch (error: any) {
-    console.warn("Error getting session:", error)
-    return null
-  }
-}
-
-// Listen to auth state changes
-export const onAuthStateChange = (callback: (user: User | null) => void) => {
-  if (!isSupabaseConfigured()) {
-    return { data: { subscription: { unsubscribe: () => {} } } }
   }
 
-  return supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log("Auth event:", event, session?.user?.id)
+  if (isSupabaseConfigured()) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-    switch (event) {
-      case "SIGNED_IN":
-        callback(session?.user || null)
-        break
-      case "SIGNED_OUT":
-        callback(null)
-        break
-      case "TOKEN_REFRESHED":
-        callback(session?.user || null)
-        break
-      case "USER_UPDATED":
-        callback(session?.user || null)
-        break
-      default:
-        callback(session?.user || null)
+        if (profile) {
+          const userData = {
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            type: profile.type,
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
+          return userData
+        }
+      }
+    } catch (error) {
+      console.error("Error getting current user:", error)
     }
-  })
-}
-
-// Refresh session
-export const refreshSession = async () => {
-  try {
-    if (!isSupabaseConfigured()) {
-      return null
-    }
-
-    const { data, error } = await supabase.auth.refreshSession()
-
-    if (error) {
-      console.warn("Error refreshing session:", error)
-      return null
-    }
-
-    return data.session
-  } catch (error: any) {
-    console.warn("Error refreshing session:", error)
-    return null
   }
+
+  return null
 }

@@ -1,16 +1,22 @@
 "use client"
 
-import { useAuth } from "@/hooks/use-auth"
+import { useState, useEffect } from "react"
 import { LoginScreen } from "@/components/login-screen"
 import { AdminDashboard } from "@/components/admin-dashboard"
 import { ClientDashboard } from "@/components/client-dashboard"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function Home() {
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
+  const [mounted, setMounted] = useState(false)
 
-  if (loading) {
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando...</p>
@@ -23,12 +29,9 @@ export default function Home() {
     return <LoginScreen />
   }
 
-  // Determine user type from metadata
-  const userType = user.user_metadata?.type || "client"
-
-  if (userType === "admin") {
-    return <AdminDashboard />
+  if (user.type === "admin") {
+    return <AdminDashboard user={user} onSignOut={signOut} />
   }
 
-  return <ClientDashboard />
+  return <ClientDashboard user={user} onSignOut={signOut} />
 }

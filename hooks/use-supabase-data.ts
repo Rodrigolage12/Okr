@@ -4,71 +4,61 @@ import { useState, useEffect } from "react"
 import {
   getClients,
   createClient,
-  updateClient,
   deleteClient,
   getOKRs,
   createOKR,
-  updateOKR,
   deleteOKR,
   getReports,
   createReport,
-  updateReport,
   deleteReport,
+  getTasks,
+  createTask,
+  deleteTask,
 } from "@/lib/supabase-db"
-import type { Client, OKR, Report } from "@/lib/supabase"
 
 // Clients hook
 export function useClients() {
-  const [clients, setClients] = useState<Client[]>([])
+  const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchClients = async () => {
+  useEffect(() => {
+    loadClients()
+  }, [])
+
+  const loadClients = async () => {
     try {
       setLoading(true)
+      const data = await getClients()
+      setClients(data)
       setError(null)
-      const clientsData = await getClients()
-      setClients(clientsData)
-    } catch (error: any) {
-      setError(error.message || "Erro ao carregar clientes")
+    } catch (err) {
+      console.error("Error loading clients:", err)
+      setError(err instanceof Error ? err.message : "Unknown error")
+      setClients([])
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchClients()
-  }, [])
-
-  const addClient = async (clientData: Partial<Client>) => {
+  const addClient = async (clientData: any) => {
     try {
       const newClient = await createClient(clientData)
-      setClients((prev) => [newClient, ...prev])
+      setClients([newClient, ...clients])
       return newClient
-    } catch (error: any) {
-      setError(error.message || "Erro ao criar cliente")
-      throw error
+    } catch (err) {
+      console.error("Error adding client:", err)
+      throw err
     }
   }
 
-  const editClient = async (clientId: string, clientData: Partial<Client>) => {
+  const removeClient = async (id: string) => {
     try {
-      const updatedClient = await updateClient(clientId, clientData)
-      setClients((prev) => prev.map((client) => (client.id === clientId ? updatedClient : client)))
-      return updatedClient
-    } catch (error: any) {
-      setError(error.message || "Erro ao atualizar cliente")
-      throw error
-    }
-  }
-
-  const removeClient = async (clientId: string) => {
-    try {
-      await deleteClient(clientId)
-      setClients((prev) => prev.filter((client) => client.id !== clientId))
-    } catch (error: any) {
-      setError(error.message || "Erro ao excluir cliente")
-      throw error
+      await deleteClient(id)
+      setClients(clients.filter((client) => client.id !== id))
+    } catch (err) {
+      console.error("Error removing client:", err)
+      throw err
     }
   }
 
@@ -77,64 +67,54 @@ export function useClients() {
     loading,
     error,
     addClient,
-    editClient,
     removeClient,
-    refetch: fetchClients,
+    reload: loadClients,
   }
 }
 
 // OKRs hook
 export function useOKRs(clientId?: string) {
-  const [okrs, setOKRs] = useState<OKR[]>([])
+  const [okrs, setOKRs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchOKRs = async () => {
+  useEffect(() => {
+    loadOKRs()
+  }, [clientId])
+
+  const loadOKRs = async () => {
     try {
       setLoading(true)
+      const data = await getOKRs(clientId)
+      setOKRs(data)
       setError(null)
-      const okrsData = await getOKRs(clientId)
-      setOKRs(okrsData)
-    } catch (error: any) {
-      setError(error.message || "Erro ao carregar OKRs")
+    } catch (err) {
+      console.error("Error loading OKRs:", err)
+      setError(err instanceof Error ? err.message : "Unknown error")
+      setOKRs([])
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchOKRs()
-  }, [clientId])
-
-  const addOKR = async (okrData: Partial<OKR>) => {
+  const addOKR = async (okrData: any) => {
     try {
       const newOKR = await createOKR(okrData)
-      setOKRs((prev) => [newOKR, ...prev])
+      setOKRs([newOKR, ...okrs])
       return newOKR
-    } catch (error: any) {
-      setError(error.message || "Erro ao criar OKR")
-      throw error
+    } catch (err) {
+      console.error("Error adding OKR:", err)
+      throw err
     }
   }
 
-  const editOKR = async (okrId: string, okrData: Partial<OKR>) => {
+  const removeOKR = async (id: string) => {
     try {
-      const updatedOKR = await updateOKR(okrId, okrData)
-      setOKRs((prev) => prev.map((okr) => (okr.id === okrId ? updatedOKR : okr)))
-      return updatedOKR
-    } catch (error: any) {
-      setError(error.message || "Erro ao atualizar OKR")
-      throw error
-    }
-  }
-
-  const removeOKR = async (okrId: string) => {
-    try {
-      await deleteOKR(okrId)
-      setOKRs((prev) => prev.filter((okr) => okr.id !== okrId))
-    } catch (error: any) {
-      setError(error.message || "Erro ao excluir OKR")
-      throw error
+      await deleteOKR(id)
+      setOKRs(okrs.filter((okr) => okr.id !== id))
+    } catch (err) {
+      console.error("Error removing OKR:", err)
+      throw err
     }
   }
 
@@ -143,64 +123,54 @@ export function useOKRs(clientId?: string) {
     loading,
     error,
     addOKR,
-    editOKR,
     removeOKR,
-    refetch: fetchOKRs,
+    reload: loadOKRs,
   }
 }
 
 // Reports hook
 export function useReports(clientId?: string) {
-  const [reports, setReports] = useState<Report[]>([])
+  const [reports, setReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchReports = async () => {
+  useEffect(() => {
+    loadReports()
+  }, [clientId])
+
+  const loadReports = async () => {
     try {
       setLoading(true)
+      const data = await getReports(clientId)
+      setReports(data)
       setError(null)
-      const reportsData = await getReports(clientId)
-      setReports(reportsData)
-    } catch (error: any) {
-      setError(error.message || "Erro ao carregar relatórios")
+    } catch (err) {
+      console.error("Error loading reports:", err)
+      setError(err instanceof Error ? err.message : "Unknown error")
+      setReports([])
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchReports()
-  }, [clientId])
-
-  const addReport = async (reportData: Partial<Report>) => {
+  const addReport = async (reportData: any) => {
     try {
       const newReport = await createReport(reportData)
-      setReports((prev) => [newReport, ...prev])
+      setReports([newReport, ...reports])
       return newReport
-    } catch (error: any) {
-      setError(error.message || "Erro ao criar relatório")
-      throw error
+    } catch (err) {
+      console.error("Error adding report:", err)
+      throw err
     }
   }
 
-  const editReport = async (reportId: string, reportData: Partial<Report>) => {
+  const removeReport = async (id: string) => {
     try {
-      const updatedReport = await updateReport(reportId, reportData)
-      setReports((prev) => prev.map((report) => (report.id === reportId ? updatedReport : report)))
-      return updatedReport
-    } catch (error: any) {
-      setError(error.message || "Erro ao atualizar relatório")
-      throw error
-    }
-  }
-
-  const removeReport = async (reportId: string) => {
-    try {
-      await deleteReport(reportId)
-      setReports((prev) => prev.filter((report) => report.id !== reportId))
-    } catch (error: any) {
-      setError(error.message || "Erro ao excluir relatório")
-      throw error
+      await deleteReport(id)
+      setReports(reports.filter((report) => report.id !== id))
+    } catch (err) {
+      console.error("Error removing report:", err)
+      throw err
     }
   }
 
@@ -209,8 +179,63 @@ export function useReports(clientId?: string) {
     loading,
     error,
     addReport,
-    editReport,
     removeReport,
-    refetch: fetchReports,
+    reload: loadReports,
+  }
+}
+
+// Tasks hook
+export function useTasks(clientId?: string) {
+  const [tasks, setTasks] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadTasks()
+  }, [clientId])
+
+  const loadTasks = async () => {
+    try {
+      setLoading(true)
+      const data = await getTasks(clientId)
+      setTasks(data)
+      setError(null)
+    } catch (err) {
+      console.error("Error loading tasks:", err)
+      setError(err instanceof Error ? err.message : "Unknown error")
+      setTasks([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addTask = async (taskData: any) => {
+    try {
+      const newTask = await createTask(taskData)
+      setTasks([newTask, ...tasks])
+      return newTask
+    } catch (err) {
+      console.error("Error adding task:", err)
+      throw err
+    }
+  }
+
+  const removeTask = async (id: string) => {
+    try {
+      await deleteTask(id)
+      setTasks(tasks.filter((task) => task.id !== id))
+    } catch (err) {
+      console.error("Error removing task:", err)
+      throw err
+    }
+  }
+
+  return {
+    tasks,
+    loading,
+    error,
+    addTask,
+    removeTask,
+    reload: loadTasks,
   }
 }
