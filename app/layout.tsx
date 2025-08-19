@@ -6,9 +6,9 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "OKR Mobile App - Gestão de Objetivos e Resultados",
-  description: "Sistema completo para gerenciamento de OKRs, clientes, relatórios e tarefas",
-    generator: 'v0.dev'
+  title: "OKR Mobile App",
+  description: "Manage your OKRs and tasks efficiently",
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="en">
       <body className={inter.className}>
         <div className="min-h-screen bg-gray-50">{children}</div>
       </body>

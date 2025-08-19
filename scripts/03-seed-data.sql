@@ -1,58 +1,46 @@
--- Insert sample admin user
-INSERT INTO users (id, email, name, type) VALUES 
-('550e8400-e29b-41d4-a716-446655440000', 'rodrigocastrolage@gmail.com', 'Rodrigo Castro', 'admin')
-ON CONFLICT (email) DO NOTHING;
-
 -- Insert sample clients
-INSERT INTO clients (id, name, email, username, password, company, phone) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'João Silva', 'joao@empresa.com', 'joao_silva', '$2b$10$encrypted_password_here', 'Empresa ABC', '+55 11 99999-9999'),
-('550e8400-e29b-41d4-a716-446655440002', 'Maria Santos', 'maria@empresa.com', 'maria_santos', '$2b$10$encrypted_password_here', 'Empresa XYZ', '+55 11 88888-8888'),
-('550e8400-e29b-41d4-a716-446655440003', 'Pedro Costa', 'pedro@empresa.com', 'pedro_costa', '$2b$10$encrypted_password_here', 'Empresa 123', '+55 11 77777-7777')
+INSERT INTO clients (id, name, email, company, phone, status) VALUES
+('550e8400-e29b-41d4-a716-446655440001', 'João Silva', 'joao@empresa.com', 'Empresa ABC', '(11) 99999-9999', 'active'),
+('550e8400-e29b-41d4-a716-446655440002', 'Maria Santos', 'maria@empresa.com', 'Empresa XYZ', '(11) 88888-8888', 'active'),
+('550e8400-e29b-41d4-a716-446655440003', 'Pedro Costa', 'pedro@empresa.com', 'Empresa 123', '(11) 77777-7777', 'active')
 ON CONFLICT (email) DO NOTHING;
 
--- Insert corresponding user records for clients
-INSERT INTO users (id, email, name, username, type) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'joao@empresa.com', 'João Silva', 'joao_silva', 'client'),
-('550e8400-e29b-41d4-a716-446655440002', 'maria@empresa.com', 'Maria Santos', 'maria_santos', 'client'),
-('550e8400-e29b-41d4-a716-446655440003', 'pedro@empresa.com', 'Pedro Costa', 'pedro_costa', 'client')
+-- Insert sample users
+INSERT INTO users (id, email, name, user_type, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440010', 'rodrigocastrolage@gmail.com', 'Rodrigo Castro', 'admin', NULL),
+('550e8400-e29b-41d4-a716-446655440011', 'joao@empresa.com', 'João Silva', 'client', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440012', 'maria@empresa.com', 'Maria Santos', 'client', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440013', 'pedro@empresa.com', 'Pedro Costa', 'client', '550e8400-e29b-41d4-a716-446655440003')
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert sample OKRs
-INSERT INTO okrs (id, client_id, title, description, quarter, year, status, progress, due_date, created_by) VALUES 
-('660e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 'Aumentar a satisfação do cliente', 'Melhorar a experiência do cliente através de diversos indicadores', 'Q1', 2024, 'active', 75, '2024-03-31', 'Ana Silva - Consultora'),
-('660e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 'Expandir base de clientes', 'Crescer a base de clientes e aumentar receita', 'Q1', 2024, 'active', 45, '2024-03-31', 'Carlos Santos - Diretor'),
-('660e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', 'Melhorar eficiência operacional', 'Otimizar processos e reduzir custos operacionais', 'Q1', 2024, 'active', 25, '2024-03-31', 'Ana Silva - Consultora')
-ON CONFLICT (id) DO NOTHING;
-
--- Insert sample key results
-INSERT INTO key_results (okr_id, title, target_value, current_value, unit, status, progress) VALUES 
-('660e8400-e29b-41d4-a716-446655440001', 'Alcançar NPS de 80 pontos', 80, 64, 'pontos', 'in_progress', 80),
-('660e8400-e29b-41d4-a716-446655440001', 'Reduzir tempo de resposta para 2 horas', 2, 2.8, 'horas', 'at_risk', 70),
-('660e8400-e29b-41d4-a716-446655440002', 'Adquirir 500 novos clientes', 500, 200, 'clientes', 'at_risk', 40),
-('660e8400-e29b-41d4-a716-446655440002', 'Aumentar receita em 30%', 30, 15, '%', 'in_progress', 50),
-('660e8400-e29b-41d4-a716-446655440003', 'Reduzir custos operacionais em 15%', 15, 4.5, '%', 'off_track', 30),
-('660e8400-e29b-41d4-a716-446655440003', 'Automatizar 80% dos processos manuais', 80, 16, '%', 'off_track', 20);
-
--- Insert sample reports
-INSERT INTO reports (client_id, title, description, content, type, status, sent_at, viewed_at, created_by) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'Relatório Mensal - Janeiro 2024', 'Análise de performance e progresso dos OKRs do mês de janeiro', '# Relatório Mensal - Janeiro 2024
-
-## Resumo Executivo
-Este relatório apresenta o progresso dos seus OKRs durante o mês de janeiro de 2024...', 'monthly', 'viewed', '2024-01-26', '2024-01-27', 'Ana Silva - Consultora'),
-
-('550e8400-e29b-41d4-a716-446655440001', 'Relatório de Projeto - Consultoria Estratégica', 'Relatório de progresso do projeto de consultoria estratégica', '# Relatório de Projeto - Consultoria Estratégica
-
-## Status do Projeto
-**Período**: Janeiro 2024...', 'project', 'viewed', '2024-01-21', '2024-01-22', 'Carlos Santos - Diretor');
+INSERT INTO okrs (id, title, description, objective, key_results, progress, status, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440020', 'Crescimento Q1 2024', 'Objetivos de crescimento para o primeiro trimestre', 'Aumentar receita em 25%', '["Fechar 50 novos contratos", "Aumentar ticket médio em 15%", "Reduzir churn em 10%"]', 65, 'active', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440021', 'Melhoria de Processos', 'Otimizar processos internos', 'Reduzir tempo de resposta em 40%', '["Automatizar 3 processos manuais", "Treinar equipe em novas ferramentas", "Implementar dashboard de métricas"]', 30, 'active', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440022', 'Expansão de Mercado', 'Entrar em novos mercados', 'Conquistar 3 novos segmentos', '["Pesquisa de mercado completa", "Desenvolver estratégia de entrada", "Contratar equipe especializada"]', 80, 'active', '550e8400-e29b-41d4-a716-446655440003');
 
 -- Insert sample tasks
-INSERT INTO tasks (client_id, title, description, status, priority, due_date) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'Revisar OKRs do Q1', 'Analisar progresso e ajustar metas se necessário', 'pending', 'high', '2024-01-20'),
-('550e8400-e29b-41d4-a716-446655440002', 'Preparar relatório mensal', 'Compilar dados e métricas do mês', 'completed', 'medium', '2024-01-15'),
-('550e8400-e29b-41d4-a716-446655440001', 'Agendar reunião com equipe', 'Organizar reunião de alinhamento', 'pending', 'low', NULL);
+INSERT INTO tasks (id, title, description, status, priority, due_date, assigned_to, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440030', 'Revisar relatório mensal', 'Analisar métricas do mês anterior e preparar insights', 'pending', 'high', '2024-02-15', '550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440031', 'Preparar apresentação para cliente', 'Criar slides para reunião de review', 'in_progress', 'medium', '2024-02-20', '550e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440032', 'Implementar nova funcionalidade', 'Desenvolver módulo de relatórios automáticos', 'pending', 'high', '2024-02-25', '550e8400-e29b-41d4-a716-446655440013', '550e8400-e29b-41d4-a716-446655440003'),
+('550e8400-e29b-41d4-a716-446655440033', 'Treinamento da equipe', 'Capacitar equipe nas novas ferramentas', 'completed', 'medium', '2024-02-10', '550e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440001');
 
--- Insert sample meetings
-INSERT INTO meetings (client_id, title, description, date, time, duration, type, meeting_type, location, meeting_link, status, organizer) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'Reunião de Briefing', 'Primeira reunião para entender necessidades e objetivos', '2024-01-15', '10:00', 60, 'consultation', 'online', NULL, 'https://meet.google.com/abc-defg-hij', 'confirmed', 'Ana Silva - Consultora'),
-('550e8400-e29b-41d4-a716-446655440001', 'Apresentação da Estratégia', 'Apresentação da estratégia desenvolvida', '2024-01-22', '14:00', 90, 'review', 'presencial', 'Escritório da empresa - Sala de Reuniões 1', NULL, 'scheduled', 'Carlos Santos - Diretor'),
-('550e8400-e29b-41d4-a716-446655440001', 'Acompanhamento Semanal', 'Reunião de acompanhamento do progresso', '2024-01-29', '15:30', 30, 'follow_up', 'telefone', NULL, NULL, 'scheduled', 'Ana Silva - Consultora');
+-- Insert sample events
+INSERT INTO events (id, title, description, date, time, type, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440040', 'Reunião de planejamento mensal', 'Definir metas e estratégias para o próximo mês', '2024-02-15', '14:00', 'meeting', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440041', 'Review de OKRs Q1', 'Avaliar progresso dos objetivos do trimestre', '2024-02-20', '10:00', 'review', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440042', 'Deadline - Entrega do projeto', 'Prazo final para entrega do projeto de expansão', '2024-02-25', '18:00', 'deadline', '550e8400-e29b-41d4-a716-446655440003'),
+('550e8400-e29b-41d4-a716-446655440043', 'Reunião de alinhamento', 'Alinhar expectativas e próximos passos', '2024-02-18', '16:00', 'meeting', '550e8400-e29b-41d4-a716-446655440001');
+
+-- Insert sample reports
+INSERT INTO reports (id, title, description, type, data, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440050', 'Relatório de Progresso Q1', 'Análise detalhada do progresso dos OKRs no primeiro trimestre', 'okr', '{"progress": 65, "completed_okrs": 2, "pending_okrs": 3, "metrics": {"revenue_growth": "18%", "new_clients": 35}}', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440051', 'Relatório de Tarefas', 'Status das tarefas e produtividade da equipe', 'task', '{"completed_tasks": 12, "pending_tasks": 8, "overdue_tasks": 2, "productivity_score": 85}', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440052', 'Relatório do Cliente', 'Análise completa do desempenho e satisfação', 'client', '{"satisfaction_score": 9.2, "retention_rate": "95%", "growth_rate": "22%", "issues_resolved": 15}', '550e8400-e29b-41d4-a716-446655440003');
+
+-- Insert sample processes
+INSERT INTO processes (id, name, description, steps, status, client_id) VALUES
+('550e8400-e29b-41d4-a716-446655440060', 'Processo de Onboarding', 'Processo completo para integração de novos clientes', '[{"step": 1, "title": "Reunião inicial", "description": "Entender necessidades do cliente"}, {"step": 2, "title": "Proposta comercial", "description": "Elaborar proposta personalizada"}, {"step": 3, "title": "Contratação", "description": "Formalizar contrato"}, {"step": 4, "title": "Kick-off", "description": "Iniciar projeto"}]', 'active', '550e8400-e29b-41d4-a716-446655440001'),
+('550e8400-e29b-41d4-a716-446655440061', 'Processo de Review Mensal', 'Processo para avaliação mensal de resultados', '[{"step": 1, "title": "Coleta de dados", "description": "Reunir métricas do mês"}, {"step": 2, "title": "Análise", "description": "Analisar performance"}, {"step": 3, "title": "Reunião de review", "description": "Apresentar resultados"}, {"step": 4, "title": "Plano de ação", "description": "Definir próximos passos"}]', 'active', '550e8400-e29b-41d4-a716-446655440002'),
+('550e8400-e29b-41d4-a716-446655440062', 'Processo de Expansão', 'Processo para entrada em novos mercados', '[{"step": 1, "title": "Pesquisa de mercado", "description": "Analisar oportunidades"}, {"step": 2, "title": "Estratégia", "description": "Definir abordagem"}, {"step": 3, "title": "Execução", "description": "Implementar plano"}, {"step": 4, "title": "Monitoramento", "description": "Acompanhar resultados"}]', 'active', '550e8400-e29b-41d4-a716-446655440003');

@@ -3,13 +3,12 @@ import { createClient } from "@supabase/supabase-js"
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://nyoftuegpgpslnvdvdln.supabase.co"
 const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2Z0dWVncGdwc2xudmR2ZGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NDA0MTMsImV4cCI6MjA2NTMxNjQxM30.wYWG9JW9iaJtTmPJJH6EF8beB7geGhbx27l54S3iCsk"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55b2Z0dWVncGdwc2xudmR2ZGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ2MzY2NzEsImV4cCI6MjA1MDIxMjY3MX0.VYlBJhkJhEhOJQKJhEhOJQKJhEhOJQKJhEhOJQKJhEhO"
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
   },
 })
 

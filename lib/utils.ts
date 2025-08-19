@@ -25,61 +25,64 @@ export function formatDateTime(date: string | Date) {
   })
 }
 
-export function generateId() {
-  return Math.random().toString(36).substr(2, 9)
-}
-
-export function validateEmail(email: string) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(email)
-}
-
-export function truncateText(text: string, maxLength: number) {
-  if (text.length <= maxLength) return text
-  return text.substr(0, maxLength) + "..."
-}
-
-export function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-export function calculateProgress(current: number, target: number) {
+export function calculateProgress(current: number, target: number): number {
   if (target === 0) return 0
   return Math.min(Math.round((current / target) * 100), 100)
 }
 
-export function getStatusColor(status: string) {
+export function getStatusColor(status: string): string {
   switch (status.toLowerCase()) {
     case "completed":
-    case "active":
+    case "concluído":
       return "text-green-600 bg-green-100"
     case "in_progress":
+    case "em_progresso":
+      return "text-blue-600 bg-blue-100"
     case "pending":
+    case "pendente":
       return "text-yellow-600 bg-yellow-100"
     case "cancelled":
-    case "inactive":
+    case "cancelado":
       return "text-red-600 bg-red-100"
-    case "draft":
-      return "text-gray-600 bg-gray-100"
     default:
-      return "text-blue-600 bg-blue-100"
+      return "text-gray-600 bg-gray-100"
   }
 }
 
-export function getPriorityColor(priority: string) {
+export function getPriorityColor(priority: string): string {
   switch (priority.toLowerCase()) {
     case "high":
+    case "alta":
       return "text-red-600 bg-red-100"
     case "medium":
+    case "média":
       return "text-yellow-600 bg-yellow-100"
     case "low":
+    case "baixa":
       return "text-green-600 bg-green-100"
     default:
       return "text-gray-600 bg-gray-100"
+  }
+}
+
+export function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+export function generateId(): string {
+  return Math.random().toString(36).substr(2, 9)
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.substr(0, maxLength) + "..."
+}
+
+export function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
   }
 }
